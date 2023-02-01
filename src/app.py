@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = "my-secret"  # Change this!
+app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY') 
 jwt = JWTManager(app)
 
 # database configuration
@@ -60,14 +60,14 @@ def create_token():
     # request.json.get('email', None)
     password = 'dontLook'
     # request.json.get('password', None)
-    user = User.query.filter_by(email=email, password=password).first()
+    user = User.query.filter_by(email=email).first()
     if user is None:
-        return jsonify({'error': 'wrong credentials'}), 401
+        return jsonify({'error': 'user already exists'}), 401
     access_token = create_access_token(identity=user.id)
     return jsonify({'token': access_token, 'user_id': user.id})
 
 # get user
-@app.route('/user', methods=['GET'])
+@app.route('/private', methods=['GET'])
 @jwt_required()
 def private_user():
     current_user_id = get_jwt_identity()
